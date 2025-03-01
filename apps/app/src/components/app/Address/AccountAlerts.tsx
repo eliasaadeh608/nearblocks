@@ -3,16 +3,24 @@ import { useCallback, useEffect, useState } from 'react';
 
 import useRpc from '@/hooks/app/useRpc';
 import { convertToUTC, nanoToMilli } from '@/utils/app/libs';
-import { AccountDataInfo, ContractCodeInfo, KeysInfo } from '@/utils/types';
+import {
+  AccountDataInfo,
+  ContractCodeInfo,
+  KeysInfo,
+  TextAdData,
+} from '@/utils/types';
 
 import WarningIcon from '../Icons/WarningIcon';
+import SponsoredText from '../SponsoredText';
 
 export default function AccountAlerts({
   accountData,
   id,
+  sponsoredText,
 }: {
   accountData: any;
   id: string;
+  sponsoredText?: TextAdData;
 }) {
   const { contractCode, viewAccessKeys, viewAccount } = useRpc();
   const [contract, setContract] = useState<ContractCodeInfo | null>(null);
@@ -21,6 +29,9 @@ export default function AccountAlerts({
   const [isAccountLoading, setIsAccountLoading] = useState(true);
   const [isContractLoading, setIsContractLoading] = useState(true);
   const [accessKeys, setAccessKeys] = useState<[] | KeysInfo>([]);
+  const [accountValid, setAccountValid] = useState(
+    () => accountData?.account?.[0]?.account_id === id,
+  );
 
   const loadSchema = useCallback(async () => {
     if (!id) return;
@@ -35,9 +46,12 @@ export default function AccountAlerts({
           return null;
         }),
         viewAccount(id).catch(() => {
+          setAccountValid(false);
           return null;
         }),
       ]);
+
+      setAccountValid(!!account);
 
       if (code?.code_base64) {
         setContract((prev) => {
@@ -91,6 +105,30 @@ export default function AccountAlerts({
   useEffect(() => {
     loadSchema();
   }, [loadSchema]);
+
+  if (accountValid === false) {
+    return (
+      <div className="container-xxl text-sm dark:text-neargray-10 text-nearblue-600">
+        <div>
+          <div className="pl-1.5 py-4 min-h-[25px]">
+            This address does not exist.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (accountValid && !isAccountLoading && !isLocked && sponsoredText) {
+    return (
+      <div className="container-xxl text-sm dark:text-neargray-10 text-nearblue-600">
+        <div>
+          <div className="pl-1.5 py-4 min-h-[25px]">
+            <SponsoredText sponsoredText={sponsoredText} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (
     !accountView &&

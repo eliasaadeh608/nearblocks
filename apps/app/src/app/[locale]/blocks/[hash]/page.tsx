@@ -15,7 +15,7 @@ export default async function Hash(props: {
 
   const { hash } = params;
 
-  const [hashData, priceData] = await fetchHashAndPriceData(hash);
+  const [hashData, priceData, syncData] = await fetchHashAndPriceData(hash);
 
   const errorBoundaryFallback = (
     <>
@@ -48,6 +48,7 @@ export default async function Hash(props: {
               hash={hash}
               loading={!hashData}
               price={priceData}
+              syncData={syncData}
             />
           </Suspense>
         </ErrorBoundary>
@@ -69,7 +70,9 @@ async function fetchHashAndPriceData(hash: string) {
     hashDataPromise,
     priceDataPromise,
   ]);
-  return [hashData, priceData];
+  const syncData = (await getRequest(`sync/status`)) || [];
+
+  return [hashData, priceData, syncData];
 }
 
 async function fetchHashData(hash: string) {

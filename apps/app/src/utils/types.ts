@@ -1906,3 +1906,29 @@ export type ApiTxnData = {
   subActions: ActionInfo[];
   tokenMetadata: ProcessedTokenMeta[];
 };
+
+export type StatusResponse = {
+  status: {
+    aggregates: {
+      ft_holders: SyncStatus;
+      nft_holders: SyncStatus;
+    };
+    indexers: {
+      balance: SyncStatus;
+      base: SyncStatus;
+      events: SyncStatus;
+    };
+    jobs: {
+      daily_stats: {
+        date: string;
+        sync: boolean;
+      };
+    };
+  };
+};
+
+interface SyncStatus {
+  height: string;
+  sync: boolean;
+  timestamp: string;
+}

@@ -15,7 +15,7 @@ import {
   nanoToMilli,
 } from '@/utils/app/libs';
 import { gasPrice } from '@/utils/near';
-import { BlocksInfo } from '@/utils/types';
+import { BlocksInfo, StatusResponse } from '@/utils/types';
 import dayjs from '../../../utils/app/dayjs';
 
 import ErrorMessage from '../common/ErrorMessage';
@@ -27,6 +27,7 @@ interface Props {
   hash?: any;
   loading?: any;
   price: any;
+  syncData: StatusResponse;
 }
 
 interface BlockData {
@@ -35,20 +36,18 @@ interface BlockData {
 
 export default function Details(props: Props) {
   const t = useTranslations();
-  const { data, hash, price } = props;
+  const { data, hash, price, syncData } = props;
   const nearPrice = price?.stats[0]?.near_price;
   const { networkId } = useConfig();
   const { getBlockDetails } = useRpc();
   const [blockInfo, setBlockInfo] = useState<BlockData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [utc, setUtc] = useState(true);
+  const baseIndexerStatus = syncData && syncData?.status?.indexers?.base?.sync;
 
   useEffect(() => {
     const fetchBlockData = async () => {
-      if (
-        !data ||
-        (Array?.isArray(data?.blocks) && data?.blocks?.length === 0)
-      ) {
+      if (!data || !baseIndexerStatus) {
         try {
           const res = await getBlockDetails(hash);
 
@@ -91,7 +90,7 @@ export default function Details(props: Props) {
 
     fetchBlockData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, hash]);
+  }, [data, hash, baseIndexerStatus]);
 
   interface Props {
     children?: string;
@@ -105,11 +104,10 @@ export default function Details(props: Props) {
       {props.children}
     </Link>
   );
-
   const block =
-    Array.isArray(data?.blocks) && data?.blocks?.length === 0
-      ? blockInfo?.blocks?.[0]
-      : data?.blocks?.[0];
+    baseIndexerStatus && data?.blocks.length > 0
+      ? data?.blocks?.[0]
+      : blockInfo?.blocks?.[0];
 
   const { utcTime, localTime } = convertTimestampToTimes(
     block?.block_timestamp,
