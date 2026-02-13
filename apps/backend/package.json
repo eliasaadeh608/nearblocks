@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@sentry/node": "7.74.1",
-    "axios": "1.6.2",
+    "axios": "0.30.2",
     "big.js": "6.2.1",
     "borsh": "2.0.0",
     "bree": "9.1.2",
